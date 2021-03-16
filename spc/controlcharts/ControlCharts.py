@@ -44,6 +44,10 @@ class ControlChart:
             U Chart
             np Chart
             p Chart
+            
+    Possibly Include:
+        Process Capability
+        
     """
 
     @staticmethod
@@ -94,18 +98,20 @@ class ControlChart:
         fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, squeeze=True, figsize=(10, 7), tight_layout=True)
 
         # Plot One
-        ax1.plot(data[0], linestyle='-', marker='o', color='slategray')  # Plot Data
         ax1.axhline(ucl[0], linestyle='--', color='red', label=f'UCL = {ucl[0]:.2f}')  # UCL
         ax1.axhline(cl[0], color='blue', label=f'CL = {cl[0]:.2f}')  # CL
         ax1.axhline(lcl[0], linestyle='--', color='red', label=f'LCL = {lcl[0]:.2f}')  # LCL
+
+        ax1.plot(data[0], linestyle='-', marker='o', color='black')  # Plot Data
         ax1.legend(bbox_to_anchor=(1.05, 0.5), loc='center left', borderaxespad=0.)  # Plot Legend
         ax1.set(title=title[0], xlabel=xlab[0], ylabel=ylab[0])  # Titles and Labels
 
         # Plot Two
-        ax2.plot(data[1], linestyle='-', marker='o', color='slategray')  # Plot Data
         ax2.axhline(ucl[1], linestyle='--', color='red', label=f'UCL = {ucl[1]:.2f}')  # UCL
         ax2.axhline(cl[1], color='blue', label=f'CL = {cl[1]:.2f}')  # CL
         ax2.axhline(lcl[1], linestyle='--', color='red', label=f'LCL = {lcl[1]:.2f}')  # LCL
+
+        ax2.plot(data[1], linestyle='-', marker='o', color='black')  # Plot Data
         ax2.legend(bbox_to_anchor=(1.05, 0.5), loc='center left', borderaxespad=0.)
         ax2.set(title=title[1], xlabel=xlab[1], ylabel=ylab[1])  # Titles and Labels
 
@@ -248,11 +254,11 @@ class ControlChart:
             if limits:  # Sigma limits given
                 # Control Limits
                 cl = mu
-                ucl = mu + limits * (self.data.values.std(ddof=1) / math.sqrt(self.n))
-                lcl = mu - limits * (self.data.values.std(ddof=1) / math.sqrt(self.n))
+                ucl = mu + limits * sigma / math.sqrt(self.n)
+                lcl = mu - limits * sigma / math.sqrt(self.n)
 
                 # Validate that points are in control
-                self.validate_chart_points('X-bar (Range) Chart - Mu and Sigma Known - Limits Given',
+                self.validate_chart_points('X-bar(Range) Chart - Mu and Sigma Known - Limits Given',
                                            chart_data['x_bar'], ucl, lcl)
 
                 # Plot the data
@@ -261,11 +267,11 @@ class ControlChart:
             else:  # Sigma limits not given
                 # Control Limits
                 cl = mu
-                ucl = mu + stats.norm.ppf(1 - alpha / 2) * (self.data.values.std(ddof=1) / math.sqrt(self.n))
-                lcl = mu - stats.norm.ppf(1 - alpha / 2) * (self.data.values.std(ddof=1) / math.sqrt(self.n))
+                ucl = mu + stats.norm.ppf(1 - alpha / 2) * (sigma / math.sqrt(self.n))
+                lcl = mu - stats.norm.ppf(1 - alpha / 2) * (sigma / math.sqrt(self.n))
 
                 # Validate that points are in control
-                self.validate_chart_points('X-bar (Range) Chart - Mu and Sigma Known - Standard Limits',
+                self.validate_chart_points(f'X-bar(Range) Chart - Mu and Sigma Known - Standard Limits - Alpha={alpha}',
                                            chart_data['x_bar'], ucl, lcl)
 
                 # Plot the data
@@ -278,7 +284,7 @@ class ControlChart:
             lcl = cl - A2 * statistics.mean(chart_data['R'])
 
             # Validate that points are in control
-            self.validate_chart_points('X-bar (Range) Chart - Mu and Sigma Unknown - Standard Limits',
+            self.validate_chart_points('X-bar(Range) Chart - Mu and Sigma Unknown - Standard Limits',
                                        chart_data['x_bar'], ucl, lcl)
 
             # Plot the data
@@ -390,8 +396,8 @@ class ControlChart:
             if limits:  # Sigma limits given
                 # X-bar Control Limits
                 cl1 = mu
-                ucl1 = mu + limits * (self.data.values.std(ddof=1) / math.sqrt(self.n))
-                lcl1 = mu - limits * (self.data.values.std(ddof=1) / math.sqrt(self.n))
+                ucl1 = mu + limits * (sigma / math.sqrt(self.n))
+                lcl1 = mu - limits * (sigma / math.sqrt(self.n))
 
                 # R Control Limits
                 cl2 = d2 * sigma
@@ -401,6 +407,7 @@ class ControlChart:
                 # Validate that points are in control
                 self.validate_chart_points('X-bar Chart - Mu and Sigma Known - Limits Given',
                                            chart_data['x_bar'], ucl1, lcl1)
+                print()
                 self.validate_chart_points('R Chart - Sigma Known - Limits Given',
                                            chart_data['R'], ucl2, lcl2)
 
@@ -411,8 +418,8 @@ class ControlChart:
             else:  # Sigma limits not given
                 # X-bar Control Limits
                 cl1 = mu
-                ucl1 = mu + stats.norm.ppf(1 - alpha / 2) * (self.data.values.std(ddof=1) / math.sqrt(self.n))
-                lcl1 = mu - stats.norm.ppf(1 - alpha / 2) * (self.data.values.std(ddof=1) / math.sqrt(self.n))
+                ucl1 = mu + stats.norm.ppf(1 - alpha / 2) * (sigma / math.sqrt(self.n))
+                lcl1 = mu - stats.norm.ppf(1 - alpha / 2) * (sigma / math.sqrt(self.n))
 
                 # R Control Limits
                 cl2 = d2 * sigma
@@ -422,6 +429,7 @@ class ControlChart:
                 # Validate that points are in control
                 self.validate_chart_points(f'X-bar Chart - Mu and Sigma Known - Standard Limits - Alpha={alpha}',
                                            chart_data['x_bar'], ucl1, lcl1)
+                print()
                 self.validate_chart_points(f'R Chart - Sigma Known - Standard Limits',
                                            chart_data['R'], ucl2, lcl2)
 
@@ -444,6 +452,7 @@ class ControlChart:
                 # Validate that points are in control
                 self.validate_chart_points('X-bar Chart - Mu and Sigma Unknown - Limits Given',
                                            chart_data['x_bar'], ucl1, lcl1)
+                print()
                 self.validate_chart_points('R Chart - Sigma Unknown - Limits Given',
                                            chart_data['R'], ucl2, lcl2)
 
@@ -463,8 +472,9 @@ class ControlChart:
                 lcl2 = cl2 * D3
 
                 # Validate that points are in control
-                self.validate_chart_points('X-bar(Range) Chart - Mu and Sigma Unknown - Standard Limits',
+                self.validate_chart_points('X-bar Chart - Mu and Sigma Unknown - Standard Limits',
                                            chart_data['x_bar'], ucl1, lcl1)
+                print()
                 self.validate_chart_points('R Chart - Sigma Unknown - Standard Limits',
                                            chart_data['R'], ucl2, lcl2)
 
@@ -473,16 +483,269 @@ class ControlChart:
                                  (chart_data['x_bar'], chart_data['R']), (ucl1, ucl2), (cl1, cl2), (lcl1, lcl2))
 
     # X-bar (Stddev) Chart ---------------------------------------------------------------------------------------------
-    def xbars_chart(self):
-        pass
+    def xbars_chart(self, mu=None, sigma=None, limits=None, alpha=0.05):
+        # n must must be greater than 10 (n>10)
+        if self.n > 10:
+            pass
+        else:
+            raise ValueError('X-bar(Stddev) chart must have sample size(n) = n > 10')
+
+        # Calculate x-bar
+        chart_data = pd.DataFrame(self.data.mean(1), columns=['x_bar'])
+
+        # Calculated stddev
+        chart_data = chart_data.assign(S=self.data.std(1))
+
+        # Factors
+        A3 = self.control_chart_factors.loc[self.n, 'A3']
+        c4 = self.control_chart_factors.loc[self.n, 'c4']
+
+        if mu and not sigma or sigma and not mu:
+            raise ValueError('Provide both mu and sigma')
+
+        elif mu and sigma:  # Mu and Sigma known
+            if limits:  # Sigma limits given
+                # Control Limits
+                cl = mu
+                ucl = mu + limits * (sigma / math.sqrt(self.n))
+                lcl = mu - limits * (sigma / math.sqrt(self.n))
+
+                # Validate that points are in control
+                self.validate_chart_points('X-bar (Stddev) Chart - Mu and Sigma Known - Limits Given',
+                                           chart_data['x_bar'], ucl, lcl)
+
+                # Plot the data
+                self.single_plot('X-bar Chart', 'Sample #', 'X-bar Values', chart_data['x_bar'], ucl, cl, lcl)
+
+            else:  # Sigma limits not given
+                # Control Limits
+                cl = mu
+                ucl = mu + stats.norm.ppf(1 - alpha / 2) * (sigma / math.sqrt(self.n))
+                lcl = mu - stats.norm.ppf(1 - alpha / 2) * (sigma / math.sqrt(self.n))
+
+                # Validate that points are in control
+                self.validate_chart_points('X-bar (Stddev) Chart - Mu and Sigma Known - Standard Limits',
+                                           chart_data['x_bar'], ucl, lcl)
+
+                # Plot the data
+                self.single_plot('X-bar Chart', 'Sample #', 'X-bar Values', chart_data['x_bar'], ucl, cl, lcl)
+
+        else:  # Mu and Sigma unknown
+            if limits:  # Sigma limits given
+                # Control Limits
+                cl = statistics.mean(chart_data['x_bar'])
+                ucl = cl + limits * (statistics.mean(chart_data['S']) / c4) / math.sqrt(self.n)
+                lcl = cl - limits * (statistics.mean(chart_data['S']) / c4) / math.sqrt(self.n)
+
+                # Validate that points are in control
+                self.validate_chart_points('X-bar (Stddev) Chart - Mu and Sigma Unknown - Limits Given',
+                                           chart_data['x_bar'], ucl, lcl)
+
+                # Plot the data
+                self.single_plot('X-bar Chart', 'Sample #', 'X-bar Values', chart_data['x_bar'], ucl, cl, lcl)
+
+            else:  # Sigma limits not given
+                # Control Limits
+                cl = statistics.mean(chart_data['x_bar'])
+                ucl = cl + A3 * statistics.mean(chart_data['S'])
+                lcl = cl - A3 * statistics.mean(chart_data['S'])
+
+                # Validate that points are in control
+                self.validate_chart_points('X-bar (Stddev) Chart - Mu and Sigma Unknown - Standard Limits',
+                                           chart_data['x_bar'], ucl, lcl)
+
+                # Plot the data
+                self.single_plot('X-bar Chart', 'Sample #', 'X-bar Values', chart_data['x_bar'], ucl, cl, lcl)
 
     # S Chart ----------------------------------------------------------------------------------------------------------
-    def s_chart(self):
-        pass
+    def s_chart(self, sigma=None, limits=None):
+        # n must must be greater than 10 (n>10)
+        if self.n > 10:
+            pass
+        else:
+            raise ValueError('S chart must have sample size(n) = n > 10')
 
-    # X-bar and s Chart ------------------------------------------------------------------------------------------------
-    def xbar_s_chart(self):
-        pass
+        # Calculate x-bar
+        chart_data = pd.DataFrame(self.data.mean(1), columns=['x_bar'])
+
+        # Calculated stddev
+        chart_data = chart_data.assign(S=self.data.std(1))
+
+        # Factors
+        c4 = self.control_chart_factors.loc[self.n, 'c4']
+        B3 = self.control_chart_factors.loc[self.n, 'B3']
+        B4 = self.control_chart_factors.loc[self.n, 'B4']
+        B5 = self.control_chart_factors.loc[self.n, 'B5']
+        B6 = self.control_chart_factors.loc[self.n, 'B6']
+
+        if sigma:  # Sigma known
+            if limits:  # Sigma limits given
+                # Control Limits
+                cl = c4 * sigma
+                ucl = cl + limits * sigma * math.sqrt(1 - c4 ** 2)
+                lcl = cl - limits * sigma * math.sqrt(1 - c4 ** 2)
+
+                # Validate that points are in control
+                self.validate_chart_points('S Chart - Sigma Known - Limits Given',
+                                           chart_data['S'], ucl, lcl)
+
+                # Plot the data
+                self.single_plot('S Chart', 'Sample #', 'S Values', chart_data['S'], ucl, cl, lcl)
+
+            else:  # Sigma limits not given
+                # Control Limits
+                cl = c4 * sigma
+                ucl = B6 * sigma
+                lcl = B5 * sigma
+
+                # Validate that points are in control
+                self.validate_chart_points('S Chart - Sigma Known - Standard Limits',
+                                           chart_data['S'], ucl, lcl)
+
+                # Plot the data
+                self.single_plot('S Chart', 'Sample #', 'S Values', chart_data['S'], ucl, cl, lcl)
+
+        else:  # Sigma unknown
+            if limits:  # Sigma limits given
+                # Control Limits
+                cl = statistics.mean(chart_data['S'])
+                ucl = cl * (1 + limits * (math.sqrt(1 - c4 ** 2) / c4))
+                lcl = cl * (1 - limits * (math.sqrt(1 - c4 ** 2) / c4))
+
+                # Validate that points are in control
+                self.validate_chart_points('S Chart - Sigma Unknown - Limits Given',
+                                           chart_data['S'], ucl, lcl)
+
+                # Plot the data
+                self.single_plot('S Chart', 'Sample #', 'S Values', chart_data['S'], ucl, cl, lcl)
+
+            else:  # Sigma limits not given
+                # Control Limits
+                cl = statistics.mean(chart_data['S'])
+                ucl = cl * B4
+                lcl = cl * B3
+
+                # Validate that points are in control
+                self.validate_chart_points('S Chart - Sigma Unknown - Standard Limits',
+                                           chart_data['S'], ucl, lcl)
+
+                # Plot the data
+                self.single_plot('S Chart', 'Sample #', 'S Values', chart_data['S'], ucl, cl, lcl)
+
+    # X-bar and S Chart ------------------------------------------------------------------------------------------------
+    def xbar_s_chart(self, mu=None, sigma=None, limits=None, alpha=0.05):
+        # n must must be greater than 10 (n>10)
+        if self.n > 10:
+            pass
+        else:
+            raise ValueError('X-bar & S charts must have sample size(n) = n > 10')
+
+        # Calculate x-bar
+        chart_data = pd.DataFrame(self.data.mean(1), columns=['x_bar'])
+
+        # Calculated stddev
+        chart_data = chart_data.assign(S=self.data.std(1))
+
+        # Factors
+        A3 = self.control_chart_factors.loc[self.n, 'A3']
+        c4 = self.control_chart_factors.loc[self.n, 'c4']
+        B3 = self.control_chart_factors.loc[self.n, 'B3']
+        B4 = self.control_chart_factors.loc[self.n, 'B4']
+        B5 = self.control_chart_factors.loc[self.n, 'B5']
+        B6 = self.control_chart_factors.loc[self.n, 'B6']
+
+        if mu and not sigma or sigma and not mu:
+            raise ValueError('Provide both mu and sigma')
+
+        elif mu and sigma:  # mu and sigma known
+            if limits:  # Sigma limits given
+                # X-bar Control Limits
+                cl1 = mu
+                ucl1 = mu + limits * (sigma / math.sqrt(self.n))
+                lcl1 = mu - limits * (sigma / math.sqrt(self.n))
+
+                # S Control Limits
+                cl2 = c4 * sigma
+                ucl2 = cl2 + limits * sigma * math.sqrt(1 - c4 ** 2)
+                lcl2 = cl2 - limits * sigma * math.sqrt(1 - c4 ** 2)
+
+                # Validate that points are in control
+                self.validate_chart_points('X-bar Chart - Mu and Sigma Known - Limits Given',
+                                           chart_data['x_bar'], ucl1, lcl1)
+                print()
+                self.validate_chart_points('S Chart - Sigma Known - Limits Given',
+                                           chart_data['S'], ucl2, lcl2)
+
+                # Plot the data
+                self.double_plot(('X-bar Chart', 'S Chart'), (None, 'Sample #'), ('X-bar Values', 'S Values'),
+                                 (chart_data['x_bar'], chart_data['S']), (ucl1, ucl2), (cl1, cl2), (lcl1, lcl2))
+
+            else:  # Sigma limits not given
+                # X-bar Control Limits
+                cl1 = mu
+                ucl1 = mu + stats.norm.ppf(1 - alpha / 2) * (sigma / math.sqrt(self.n))
+                lcl1 = mu - stats.norm.ppf(1 - alpha / 2) * (sigma / math.sqrt(self.n))
+
+                # S Control Limits
+                cl2 = c4 * sigma
+                ucl2 = B6 * sigma
+                lcl2 = B5 * sigma
+
+                # Validate that points are in control
+                self.validate_chart_points(f'X-bar Chart - Mu and Sigma Known - Standard Limits - Alpha={alpha}',
+                                           chart_data['x_bar'], ucl1, lcl1)
+                print()
+                self.validate_chart_points('S Chart - Sigma Known - Standard Limits',
+                                           chart_data['S'], ucl2, lcl2)
+
+                # Plot the data
+                self.double_plot(('X-Bar Chart', 'S Chart'), (None, 'Sample #'), ('X-bar Values', 'S Values'),
+                                 (chart_data['x_bar'], chart_data['S']), (ucl1, ucl2), (cl1, cl2), (lcl1, lcl2))
+
+        else:  # mu and sigma unknown
+            if limits:  # Sigma limits given
+                # X-bar Control Limits
+                cl1 = statistics.mean(chart_data['x_bar'])
+                ucl1 = cl1 + limits * (statistics.mean(chart_data['S']) / c4) / math.sqrt(self.n)
+                lcl1 = cl1 - limits * (statistics.mean(chart_data['S']) / c4) / math.sqrt(self.n)
+
+                # S Control Limits
+                cl2 = statistics.mean(chart_data['S'])
+                ucl2 = cl2 * (1 + limits * (math.sqrt(1 - c4 ** 2) / c4))
+                lcl2 = cl2 * (1 - limits * (math.sqrt(1 - c4 ** 2) / c4))
+
+                # Validate that points are in control
+                self.validate_chart_points('X-bar Chart - Mu and Sigma Unknown - Limits Given',
+                                           chart_data['x_bar'], ucl1, lcl1)
+                print()
+                self.validate_chart_points('S Chart - Sigma Unknown - Limits Given',
+                                           chart_data['S'], ucl2, lcl2)
+
+                # Plot the data
+                self.double_plot(('X-Bar Chart', 'S Chart'), (None, 'Sample #'), ('X-bar Values', 'S Values'),
+                                 (chart_data['x_bar'], chart_data['S']), (ucl1, ucl2), (cl1, cl2), (lcl1, lcl2))
+
+            else:  # Sigma limits not given
+                # X-bar Control Limits
+                cl1 = statistics.mean(chart_data['x_bar'])
+                ucl1 = cl1 + A3 * statistics.mean(chart_data['S'])
+                lcl1 = cl1 - A3 * statistics.mean(chart_data['S'])
+
+                # S Control Limits
+                cl2 = statistics.mean(chart_data['S'])
+                ucl2 = cl2 * B4
+                lcl2 = cl2 * B3
+
+                # Validate that points are in control
+                self.validate_chart_points('X-bar Chart - Mu and Sigma Unknown - Standard Limits',
+                                           chart_data['x_bar'], ucl1, lcl1)
+                print()
+                self.validate_chart_points('S Chart - Sigma Unknown - Standard Limits',
+                                           chart_data['S'], ucl2, lcl2)
+
+                # Plot the data
+                self.double_plot(('X-Bar Chart', 'S Chart'), (None, 'Sample #'), ('X-bar Values', 'S Values'),
+                                 (chart_data['x_bar'], chart_data['S']), (ucl1, ucl2), (cl1, cl2), (lcl1, lcl2))
 
     # c Chart ----------------------------------------------------------------------------------------------------------
     def c_chart(self):
@@ -503,10 +766,9 @@ class ControlChart:
 
 # df = pd.DataFrame(np.random.randint(0, 100, size=(50, 4)), columns=list('ABCD'))
 # df = pd.DataFrame(np.random.rand(50, 1) * 100, columns=list('A'))
-df = pd.DataFrame(np.random.rand(50, 6) * 100)
+df = pd.DataFrame(np.random.rand(50, 15) * 100)
 # df = [[3, 5, 2, 3, 5], [5, 9, 2, 6, 4], [1, 5, 3, 4, 2], [7, 8, 6, 0, 1]]
 # df = np.random.randint(0, 100, size=(50, 6))
 
 cc = ControlChart(data=df)
-
-print(cc.xbar_R_chart())
+cc.xbar_s_chart()
